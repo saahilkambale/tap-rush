@@ -1,0 +1,7 @@
+.vercel
+.chrome-data
+.chrome-test-profile
+node_modules
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,19 @@
+{
+  "name": "TAP RUSH — Neon Arcade Reflex Game",
+  "short_name": "TAP RUSH",
+  "description": "Fast-paced neon arcade reflex game. Tap moving targets, score combos, dodge hazard bombs, and conquer the daily challenge!",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070913",
+  "theme_color": "#070913",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "arcade"]
+}

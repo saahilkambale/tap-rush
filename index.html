@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>TAP RUSH — Neon Arcade Reflex Game</title>
+  <meta name="description" content="Tap Rush is an intense, fast-paced neon arcade game. Tap moving targets in 30 seconds, dodge hazards, score combos, and conquer the daily challenge!">
+  <meta name="theme-color" content="#070a14">
+
+  <!-- Favicon & PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Mobile App Capabilities -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TAP RUSH">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Open Graph / Facebook / WhatsApp Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TAP RUSH — Neon Arcade Reflex Game">
+  <meta property="og:description" content="Tap moving neon targets in 30 seconds, build combos, dodge hazards, and beat the daily challenge!">
+  <meta property="og:image" content="/favicon.svg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TAP RUSH — Neon Arcade Reflex Game">
+  <meta name="twitter:description" content="Tap moving neon targets in 30 seconds, build combos, dodge hazards, and beat the daily challenge!">
+  <meta name="twitter:image" content="/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="appContainer">
+    <!-- Background Canvas for Ambient Cyber Particles -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Top App Navigation / Status Bar -->
+    <header class="app-header">
+      <div class="logo-badge" id="logoHeader">
+        <span class="logo-neon-blue">TAP</span>
+        <span class="logo-neon-pink">RUSH</span>
+        <span class="logo-sub">ARCADE</span>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnDailyNav" class="btn-icon-text glow-yellow" title="Today's Daily Challenge">
+          <span class="icon">📅</span>
+          <span class="label">DAILY</span>
+        </button>
+        <button id="btnLeaderboardNav" class="btn-icon" title="Leaderboard">
+          <span class="icon">🏆</span>
+        </button>
+        <button id="btnHelpNav" class="btn-icon" title="How to Play">
+          <span class="icon">❓</span>
+        </button>
+        <button id="btnSoundToggle" class="btn-icon" title="Toggle Sound">
+          <span class="icon" id="soundIcon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Canvas Container (Active during gameplay) -->
+    <main id="gameArea" class="game-area">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Heads-Up Display (HUD) -->
+      <div id="hud" class="hud-container hidden">
+        <div class="hud-card hud-timer-box">
+          <span class="hud-label">TIME</span>
+          <div class="hud-timer-ring">
+            <span id="hudTimer" class="hud-value neon-cyan">30.0</span>
+          </div>
+          <div class="timer-progress-track">
+            <div id="timerProgressBar" class="timer-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="hud-card hud-score-box">
+          <span class="hud-label">SCORE</span>
+          <span id="hudScore" class="hud-value neon-yellow">0</span>
+        </div>
+
+        <div class="hud-card hud-combo-box">
+          <span class="hud-label">COMBO</span>
+          <span id="hudCombo" class="hud-value neon-pink">x1</span>
+          <div id="comboFire" class="combo-fire-indicator">🔥</div>
+        </div>
+
+        <div class="hud-card hud-accuracy-box">
+          <span class="hud-label">ACCURACY</span>
+          <span id="hudAccuracy" class="hud-value neon-green">100%</span>
+        </div>
+
+        <button id="btnPause" class="btn-pause" title="Pause Game">
+          <span>❚❚</span>
+        </button>
+      </div>
+
+      <!-- Rush Frenzy Alert Overlay -->
+      <div id="frenzyBanner" class="frenzy-banner hidden">
+        <span>⚡ SPEED RUSH! +50% SPEED ⚡</span>
+      </div>
+
+      <!-- Freeze Notice Overlay -->
+      <div id="freezeOverlay" class="freeze-overlay hidden">
+        <div class="freeze-vignette"></div>
+        <div class="freeze-badge">❄️ TIME SLOWED!</div>
+      </div>
+    </main>
+
+    <!-- UI Overlay Screens -->
+    <!-- 1. Start Screen / Menu -->
+    <div id="screenMenu" class="screen-overlay active">
+      <div class="menu-glass-panel">
+        <div class="title-container">
+          <h1 class="main-title">
+            <span class="text-cyan">TAP</span> <span class="text-pink">RUSH</span>
+          </h1>
+          <p class="tagline">Speed. Reflexes. Pure Neon Rush.</p>
+        </div>
+
+        <!-- High Score Highlights -->
+        <div class="best-score-banner">
+          <div class="trophy-icon">👑</div>
+          <div class="best-text">
+            <span class="sub">PERSONAL BEST</span>
+            <span id="menuBestScore" class="val">0 PTS</span>
+          </div>
+        </div>
+
+        <!-- Mode / Difficulty Selector -->
+        <div class="section-title">SELECT DIFFICULTY</div>
+        <div class="difficulty-grid">
+          <button class="diff-btn" data-diff="easy">
+            <div class="diff-header">
+              <span class="diff-dot dot-green"></span>
+              <span class="diff-name">EASY</span>
+            </div>
+            <div class="diff-desc">Larger targets, slow pace, relaxed play.</div>
+            <div class="diff-best" id="bestEasy">Best: 0</div>
+          </button>
+
+          <button class="diff-btn selected" data-diff="medium">
+            <div class="diff-header">
+              <span class="diff-dot dot-yellow"></span>
+              <span class="diff-name">MEDIUM</span>
+            </div>
+            <div class="diff-desc">Standard speed, bonus targets & bombs.</div>
+            <div class="diff-best" id="bestMedium">Best: 0</div>
+          </button>
+
+          <button class="diff-btn" data-diff="hard">
+            <div class="diff-header">
+              <span class="diff-dot dot-pink"></span>
+              <span class="diff-name">HARD</span>
+            </div>
+            <div class="diff-desc">Fast zig-zags, smaller targets, intense hazards!</div>
+            <div class="diff-best" id="bestHard">Best: 0</div>
+          </button>
+        </div>
+
+        <!-- Daily Challenge Card -->
+        <div class="daily-card" id="btnDailyCard">
+          <div class="daily-left">
+            <div class="daily-badge">DAILY EVENT</div>
+            <div class="daily-title" id="dailyDateTitle">Daily Challenge</div>
+            <div class="daily-hint">Identical seed for all players today. Fixed spawns!</div>
+          </div>
+          <div class="daily-right">
+            <div class="daily-best-label">TODAY'S BEST</div>
+            <div class="daily-best-score" id="menuDailyBest">--</div>
+            <span class="btn-play-mini">PLAY</span>
+          </div>
+        </div>
+
+        <!-- Start Game CTA Button -->
+        <button id="btnStartGame" class="btn-cta neon-cta-pulse">
+          <span class="cta-shine"></span>
+          <span class="cta-text">START RUSH (30s)</span>
+        </button>
+
+        <div class="menu-footer-links">
+          <button id="btnHowToPlay" class="link-btn">Target Guide</button>
+          <span class="dot-sep">•</span>
+          <button id="btnOpenLeaderboard" class="link-btn">Leaderboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Countdown Ready Screen -->
+    <div id="screenCountdown" class="screen-overlay hidden">
+      <div class="countdown-wrap">
+        <div class="countdown-mode-name" id="countdownModeText">MEDIUM MODE</div>
+        <div class="countdown-number" id="countdownNumber">3</div>
+        <div class="countdown-tip" id="countdownTip">TAP TARGETS BEFORE TIME RUNS OUT!</div>
+      </div>
+    </div>
+
+    <!-- 3. Game Over / Score Summary Screen -->
+    <div id="screenGameOver" class="screen-overlay hidden">
+      <div class="gameover-glass-panel">
+        <div class="gameover-header">
+          <div class="gameover-tag" id="gameOverTag">RUSH COMPLETE</div>
+          <h2 class="gameover-title" id="gameOverTitle">TIME'S UP!</h2>
+        </div>
+
+        <!-- Grade Rank Stamp -->
+        <div class="rank-stamp-wrap">
+          <div class="rank-stamp" id="rankStamp">S</div>
+          <div class="rank-label" id="rankLabel">CYBER LEGEND</div>
+        </div>
+
+        <!-- New High Score Alert -->
+        <div id="newHighScoreAlert" class="new-high-badge hidden">
+          ✨ NEW PERSONAL BEST! ✨
+        </div>
+
+        <!-- Score Breakdown Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card stat-primary">
+            <span class="stat-label">FINAL SCORE</span>
+            <span class="stat-val neon-yellow" id="goFinalScore">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">ACCURACY</span>
+            <span class="stat-val neon-green" id="goAccuracy">0%</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">MAX COMBO</span>
+            <span class="stat-val neon-pink" id="goMaxCombo">0x</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">HITS / MISSES</span>
+            <span class="stat-val neon-cyan" id="goHitsMisses">0 / 0</span>
+          </div>
+        </div>
+
+        <!-- Player Name Arcade Tag Input for Leaderboard -->
+        <div class="player-tag-section">
+          <label for="playerNameInput" class="player-tag-label">SAVE SCORE TO HALL OF FAME</label>
+          <div class="tag-input-row">
+            <input type="text" id="playerNameInput" maxlength="12" placeholder="PLAYER_1" autocomplete="off" spellcheck="false">
+            <button id="btnSaveScore" class="btn-save-tag">SAVE</button>
+          </div>
+          <div id="saveConfirmMessage" class="save-msg hidden">Saved to Leaderboard!</div>
+        </div>
+
+        <!-- Primary Action Buttons: WhatsApp Share & Replay -->
+        <div class="gameover-actions">
+          <button id="btnWhatsappShare" class="btn-whatsapp">
+            <span class="wa-icon">💬</span>
+            <span class="wa-text">Share on WhatsApp</span>
+          </button>
+
+          <button id="btnRestartGame" class="btn-cta">
+            <span class="cta-text">PLAY AGAIN ↺</span>
+          </button>
+
+          <div class="secondary-actions">
+            <button id="btnGoMenu" class="btn-secondary">Main Menu</button>
+            <button id="btnGoLeaderboard" class="btn-secondary">View Rankings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Pause Screen -->
+    <div id="screenPause" class="screen-overlay hidden">
+      <div class="pause-glass-panel">
+        <h2 class="pause-title">GAME PAUSED</h2>
+        <div class="pause-stats">
+          <div>Current Score: <span id="pauseScore" class="neon-yellow">0</span></div>
+          <div>Time Left: <span id="pauseTime" class="neon-cyan">0s</span></div>
+        </div>
+        <div class="pause-buttons">
+          <button id="btnResumeGame" class="btn-cta">RESUME ▶</button>
+          <button id="btnRestartFromPause" class="btn-secondary">RESTART ↺</button>
+          <button id="btnQuitToMenu" class="btn-secondary">QUIT TO MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Leaderboard Modal -->
+    <div id="modalLeaderboard" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="icon">🏆</span> HALL OF FAME
+          </div>
+          <button id="btnCloseLeaderboard" class="btn-close-modal" aria-label="Close">✕</button>
+        </div>
+
+        <!-- Leaderboard Tabs -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="arcade">ARCADE TOP 10</button>
+          <button class="tab-btn" data-tab="daily">DAILY CHALLENGE</button>
+        </div>
+
+        <!-- Difficulty Filter for Arcade Tab -->
+        <div class="filter-row" id="leaderboardFilters">
+          <button class="filter-pill active" data-filter="all">All</button>
+          <button class="filter-pill" data-filter="easy">Easy</button>
+          <button class="filter-pill" data-filter="medium">Medium</button>
+          <button class="filter-pill" data-filter="hard">Hard</button>
+        </div>
+
+        <!-- Leaderboard List -->
+        <div class="leaderboard-table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th class="col-rank">#</th>
+                <th class="col-name">PLAYER</th>
+                <th class="col-score">SCORE</th>
+                <th class="col-acc">ACC</th>
+                <th class="col-diff">MODE</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+          <div id="leaderboardEmpty" class="leaderboard-empty hidden">No scores recorded yet! Be the first!</div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnResetLeaderboard" class="btn-text-danger">Reset to Defaults</button>
+          <button id="btnDoneLeaderboard" class="btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. How To Play / Target Guide Modal -->
+    <div id="modalHelp" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="icon">⚡</span> HOW TO PLAY TAP RUSH
+          </div>
+          <button id="btnCloseHelp" class="btn-close-modal" aria-label="Close">✕</button>
+        </div>
+
+        <div class="modal-content help-scroll">
+          <div class="help-section">
+            <h3>OBJECTIVE</h3>
+            <p>You have exactly <strong>30 seconds</strong>. Tap moving neon targets to score points, build combos, and climb the leaderboard. Target speed increases as time winds down!</p>
+          </div>
+
+          <div class="help-section">
+            <h3>TARGET ROSTER</h3>
+            <div class="target-legend-grid">
+              <div class="target-item">
+                <div class="target-sample target-sample-normal"></div>
+                <div class="target-details">
+                  <div class="name neon-cyan">Normal Orb (+100)</div>
+                  <div class="desc">Standard moving target. Keep hitting to multiply combo!</div>
+                </div>
+              </div>
+
+              <div class="target-item">
+                <div class="target-sample target-sample-fast"></div>
+                <div class="target-details">
+                  <div class="name neon-yellow">Speedster (+250)</div>
+                  <div class="desc">Smaller, fast zig-zagging target. Requires quick reflexes.</div>
+                </div>
+              </div>
+
+              <div class="target-item">
+                <div class="target-sample target-sample-gold"></div>
+                <div class="target-details">
+                  <div class="name neon-gold">Golden Star (+500)</div>
+                  <div class="desc">Rare bonus! Massive points + chance for +2 bonus seconds.</div>
+                </div>
+              </div>
+
+              <div class="target-item">
+                <div class="target-sample target-sample-freeze"></div>
+                <div class="target-details">
+                  <div class="name neon-ice">Ice Orb (+200)</div>
+                  <div class="desc">Slows all target movements for 3.5 seconds. Rapid tap time!</div>
+                </div>
+              </div>
+
+              <div class="target-item">
+                <div class="target-sample target-sample-boss"></div>
+                <div class="target-details">
+                  <div class="name neon-pink">Multi-Tap Core (+600)</div>
+                  <div class="desc">Requires 3 rapid taps to shatter. Huge particle blast!</div>
+                </div>
+              </div>
+
+              <div class="target-item">
+                <div class="target-sample target-sample-bomb"></div>
+                <div class="target-details">
+                  <div class="name neon-red">Hazard Bomb (-300)</div>
+                  <div class="desc">DO NOT TAP! Deducts 300 pts, breaks combo & shakes arena!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>PRO TIPS</h3>
+            <ul class="help-tips">
+              <li>🔥 <strong>Don't tap empty space!</strong> Every missed tap resets your combo and lowers your accuracy rating.</li>
+              <li>⚡ <strong>Combos multiply points</strong> up to 5x! Consecutive hits skyrocket your final score.</li>
+              <li>📅 <strong>Daily Challenge</strong> uses a deterministic daily seed so you compete fairly against friends!</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnDoneHelp" class="btn-cta">GOT IT, LET'S RUSH!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="leaderboard.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
